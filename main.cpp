@@ -23,14 +23,24 @@ int main(int argc, char* argv[]) {
 	camera.Open(); // Open the camera
 	std::cout<<" Camera is set to OPEN"<< std::endl;
 	//Set acquisition mode to continuous
-	camera.StartGrabbing(GrabStrategy_OneByOne);
-	//Take a single image
-	camera.RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
-	//CImagePersistence::Save(ImageFileFormat_Png, "./results/hello.png", ptrGrabresult); //Save image to file 
-
-	//camera.StopGrabbing();//Stop the camera
-	//camera.Close();//close camera
-
+	
+	bool run = true;
+	while(run){
+		camera.StartGrabbing(GrabStrategy_LatestImageOnly);
+		std::cout<<" Camera is set to GRABBING"<< std::endl;
+		camera.RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
+		std::cout<<" Camera is set to RETRIEVING"<< std::endl;
+		if(ptrGrabresult->GrabSucceeded()){
+			std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
+			CImageFormatConverter formatConverter;
+			formatConverter.OutputPixelFormat = PixelType_BGR8packed;
+			CPylonImage pylonImage;
+			formatConverter.Convert(pylonImage, ptrGrabresult);
+			CImagePersistence::Save(ImageFileFormat_Png, "test.png", pylonImage);
+			std::cout<<" Camera is set to SAVED"<< std::endl;
+			run = false;
+		}
+	}
 	PylonTerminate();
 	return 0;
 }
