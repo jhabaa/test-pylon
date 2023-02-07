@@ -395,8 +395,18 @@ CMakeFiles/test.dir/main.cpp.o: ../main.cpp \
   /opt/pylon/include/pylon/private/DeviceSpecificCameraEventHandlerTie.h \
   /opt/pylon/include/pylon/usb/_UsbStreamParams.h \
   /opt/pylon/include/pylon/usb/_UsbEventParams.h \
-  /opt/pylon/include/pylon/usb/_UsbTLParams.h
+  /opt/pylon/include/pylon/usb/_UsbTLParams.h \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/limits \
+  /usr/include/c++/11/bits/parse_numbers.h
 
+
+/usr/include/c++/11/bits/parse_numbers.h:
+
+/usr/include/c++/11/limits:
+
+/usr/include/c++/11/ratio:
 
 /opt/pylon/include/pylon/usb/_UsbTLParams.h:
 
@@ -849,6 +859,8 @@ CMakeFiles/test.dir/main.cpp.o: ../main.cpp \
 /opt/pylon/include/pylon/ReusableImage.h:
 
 /usr/include/inttypes.h:
+
+/usr/include/c++/11/chrono:
 
 /usr/include/x86_64-linux-gnu/bits/wordsize.h:
 
