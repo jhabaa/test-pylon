@@ -41,6 +41,6 @@ int main(int argc, char* argv[]) {
 			run = false;
 		}
 	}
-	PylonTerminate();
+	camera.StopGrabbing();
 	return 0;
 }
