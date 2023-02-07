@@ -327,6 +327,8 @@ CMakeFiles/test.dir/main.cpp.o: \
  /opt/pylon/include/pylon/private/DeviceSpecificCameraEventHandlerTie.h \
  /opt/pylon/include/pylon/usb/_UsbStreamParams.h \
  /opt/pylon/include/pylon/usb/_UsbEventParams.h \
- /opt/pylon/include/pylon/usb/_UsbTLParams.h /usr/include/c++/11/chrono \
- /usr/include/c++/11/ratio /usr/include/c++/11/limits \
- /usr/include/c++/11/bits/parse_numbers.h
+ /opt/pylon/include/pylon/usb/_UsbTLParams.h \
+ /opt/pylon/include/pylon/usb/BaslerUsbInstantCameraArray.h \
+ /opt/pylon/include/pylon/private/DeviceSpecificInstantCameraArray.h \
+ /usr/include/c++/11/chrono /usr/include/c++/11/ratio \
+ /usr/include/c++/11/limits /usr/include/c++/11/bits/parse_numbers.h

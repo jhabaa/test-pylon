@@ -396,6 +396,8 @@ CMakeFiles/test.dir/main.cpp.o: ../main.cpp \
   /opt/pylon/include/pylon/usb/_UsbStreamParams.h \
   /opt/pylon/include/pylon/usb/_UsbEventParams.h \
   /opt/pylon/include/pylon/usb/_UsbTLParams.h \
+  /opt/pylon/include/pylon/usb/BaslerUsbInstantCameraArray.h \
+  /opt/pylon/include/pylon/private/DeviceSpecificInstantCameraArray.h \
   /usr/include/c++/11/chrono \
   /usr/include/c++/11/ratio \
   /usr/include/c++/11/limits \
@@ -407,6 +409,8 @@ CMakeFiles/test.dir/main.cpp.o: ../main.cpp \
 /usr/include/c++/11/limits:
 
 /usr/include/c++/11/ratio:
+
+/opt/pylon/include/pylon/private/DeviceSpecificInstantCameraArray.h:
 
 /opt/pylon/include/pylon/usb/_UsbTLParams.h:
 
@@ -1087,6 +1091,8 @@ CMakeFiles/test.dir/main.cpp.o: ../main.cpp \
 /usr/include/c++/11/cstddef:
 
 /usr/include/c++/11/bits/stl_vector.h:
+
+/opt/pylon/include/pylon/usb/BaslerUsbInstantCameraArray.h:
 
 /usr/include/c++/11/utility:
 
