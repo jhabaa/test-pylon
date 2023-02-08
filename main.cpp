@@ -1,10 +1,20 @@
 #include <pylon/PylonUtilityIncludes.h>
 #include <pylon/PylonIncludes.h>
 #include <pylon/InstantCamera.h>
+#include <pylon/DeviceClass.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
+#include <pylon/usb/BaslerUsbInstantCameraArray.h>
+#include <pylon/AcquireSingleFrameConfiguration.h>
+#include <pylon/ConfigurationEventHandler.h>
+#include <pylon/AcquireContinuousConfiguration.h>
+#include <pylon/SoftwareTriggerConfiguration.h>
+#include <pylon/ImagePersistence.h>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <cstdio>
+#include <chrono>
+
 
 using namespace Pylon;
 using namespace std;
@@ -13,7 +23,10 @@ int main(int argc, char* argv[]) {
 	PylonInitialize();
 	std::cout <<"Program has started"<< std::endl;
 	//Enumerate devices
-	CInstantCamera camera( CTlFactory::GetInstance().CreateFirstDevice() );
+
+// ===============================  For only one and the first camera =============================================
+	/*
+	CInstantCamera camera( CTlFactory::GetInstance().CreateFirstDevice());	
 	std::cout<<" Camera connected"<< std::endl;
 	//get infos about each
 	std::cout<<" - "<<camera.GetDeviceInfo().GetModelName()<< std::endl;
@@ -22,25 +35,114 @@ int main(int argc, char* argv[]) {
 	CGrabResultPtr ptrGrabresult; // Pointer to receive the grabResult
 	camera.Open(); // Open the camera
 	std::cout<<" Camera is set to OPEN"<< std::endl;
-	//Set acquisition mode to continuous
+	==============================================================================================================*/
 	
+	
+	//For multiples cameras
+	CTlFactory& tlFactory = CTlFactory::GetInstance();
+	DeviceInfoList_t devices;
+	if ( tlFactory.EnumerateDevices(devices) == 0 )
+	{
+		throw RUNTIME_EXCEPTION( "No camera present.");
+	}
+	// Create an array of instant cameras for the found devices and avoid exceeding a maximum number of devices.
+	CBaslerUsbInstantCameraArray cameras(2);
+	// Create and attach all Pylon Devices.
+	std::cout << "Here are our cameras " << std::endl;
+	for ( size_t i = 0; i < cameras.GetSize(); ++i)
+	{
+		cameras[ i ].Attach( tlFactory.CreateDevice( devices[ i ]));
+		std::cout<<" - "<<cameras[ i ].GetDeviceInfo().GetModelName()<<" "<<cameras[ i ].GetDeviceInfo().GetDeviceGUID()<<std::endl;
+	}
+
+
+	//Set acquisition mode to continuous
 	bool run = true;
-	while(run){
-		camera.StartGrabbing(GrabStrategy_LatestImageOnly);
-		std::cout<<" Camera is set to GRABBING"<< std::endl;
-		camera.RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
-		std::cout<<" Camera is set to RETRIEVING"<< std::endl;
+	//Number of images to be grabbed.
+	int numImagesToGrab = 1;
+
+	//use software trigger confifguration to take a picture on all cameras
+	for ( size_t i = 0; i < cameras.GetSize(); ++i)
+	{
+		cameras[ i ].Open();
+		cameras[ i ].AcquisitionMode.SetValue(Basler_UsbCameraParams::AcquisitionMode_Continuous);
+		cameras[ i ].TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
+		cameras[ i ].TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_Off);
+		cameras[ i ].TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+		cameras[ i ].StartGrabbing(GrabStrategy_LatestImageOnly);
+
+		//send software trigger
+		cameras[ i ].ExecuteSoftwareTrigger();
+		std::cout<<"Camera "<< i << " has take a picture at "<<chrono::time_point_cast<chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count()<< std::endl;
+
+		int imageCounter = 1;
+		//save the image triggered
+		CGrabResultPtr ptrGrabresult;
+		cameras[ i ].RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
 		if(ptrGrabresult->GrabSucceeded()){
 			std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
 			CImageFormatConverter formatConverter;
 			formatConverter.OutputPixelFormat = PixelType_BGR8packed;
 			CPylonImage pylonImage;
 			formatConverter.Convert(pylonImage, ptrGrabresult);
-			CImagePersistence::Save(ImageFileFormat_Png, "test.png", pylonImage);
+			//save images with iteraator as name
+			std::string name = std::to_string(i);
+			//name += std::to_string(imageCounter);
+			//CImagePersistence::Save(ImageFileFormat_Png,name+".png", pylonImage);
+			CImagePersistence::Save(ImageFileFormat_Png,".png", pylonImage);
 			std::cout<<" Camera is set to SAVED"<< std::endl;
+			//run = false;
+			cameras[ i ].Close();
+		}
+
+		//save the image
+		/*
+		CGrabResultPtr ptrGrabresult;
+		cameras[ i ].RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
+		if(ptrGrabresult->GrabSucceeded()){
+			std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
+			CImageFormatConverter formatConverter;
+			formatConverter.OutputPixelFormat = PixelType_BGR8packed;
+			CPylonImage pylonImage;
+			formatConverter.Convert(pylonImage, ptrGrabresult);
+			CImagePersistence::Save(ImageFileFormat_Png, i+".png", pylonImage);
+			std::cout<<" Camera is set to SAVED"<< std::endl;
+			//run = false;
+			cameras[ i ].Close();
+		}
+		*/
+		
+	}
+	
+	/*
+	while(run){
+		//if key P is pressed
+		std::cout<<"press \"p\" to take a picture and \"q\" to quit"<< std::endl;
+		std::string input;
+		std::cin>>input;
+		if (input == "p" || input == "P"){
+			std::cout<<" Camera is set to GRABBING"<< std::endl;
+			camera.StartGrabbing(GrabStrategy_LatestImageOnly);
+			std::cout<<" Camera is set to GRABBING"<< std::endl;
+			camera.RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
+			std::cout<<" Camera is set to RETRIEVING"<< std::endl;
+			if(ptrGrabresult->GrabSucceeded()){
+				std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
+				CImageFormatConverter formatConverter;
+				formatConverter.OutputPixelFormat = PixelType_BGR8packed;
+				CPylonImage pylonImage;
+				formatConverter.Convert(pylonImage, ptrGrabresult);
+				CImagePersistence::Save(ImageFileFormat_Png, "test.png", pylonImage);
+				std::cout<<" Camera is set to SAVED"<< std::endl;
+				//run = false;
+				camera.Close();
+			}
+		}
+		if(input == "q" || input == "Q"){
 			run = false;
 		}
 	}
 	camera.StopGrabbing();
+	*/
 	return 0;
 }
