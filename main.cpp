@@ -9,6 +9,8 @@
 #include <pylon/AcquireContinuousConfiguration.h>
 #include <pylon/SoftwareTriggerConfiguration.h>
 #include <pylon/ImagePersistence.h>
+
+
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -67,51 +69,44 @@ int main(int argc, char* argv[]) {
 		cameras[ i ].Open();
 		cameras[ i ].AcquisitionMode.SetValue(Basler_UsbCameraParams::AcquisitionMode_Continuous);
 		cameras[ i ].TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
-		cameras[ i ].TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_Off);
-		cameras[ i ].TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+		cameras[ i ].TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+		//cameras[ i ].TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+		//If we trigger the camera with hardware source
+		cameras[ i ].TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Line1);
+		cameras[ i ].ExposureTime.SetValue(130000);
 		cameras[ i ].StartGrabbing(GrabStrategy_LatestImageOnly);
 
 		//send software trigger
-		cameras[ i ].ExecuteSoftwareTrigger();
-		std::cout<<"Camera "<< i << " has take a picture at "<<chrono::time_point_cast<chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count()<< std::endl;
-
-		int imageCounter = 1;
-		//save the image triggered
-		CGrabResultPtr ptrGrabresult;
-		cameras[ i ].RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
-		if(ptrGrabresult->GrabSucceeded()){
-			std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
-			CImageFormatConverter formatConverter;
-			formatConverter.OutputPixelFormat = PixelType_BGR8packed;
-			CPylonImage pylonImage;
-			formatConverter.Convert(pylonImage, ptrGrabresult);
-			//save images with iteraator as name
-			std::string name = std::to_string(i);
-			//name += std::to_string(imageCounter);
-			//CImagePersistence::Save(ImageFileFormat_Png,name+".png", pylonImage);
-			CImagePersistence::Save(ImageFileFormat_Png,".png", pylonImage);
-			std::cout<<" Camera is set to SAVED"<< std::endl;
-			//run = false;
-			cameras[ i ].Close();
-		}
-
-		//save the image
-		/*
-		CGrabResultPtr ptrGrabresult;
-		cameras[ i ].RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
-		if(ptrGrabresult->GrabSucceeded()){
-			std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
-			CImageFormatConverter formatConverter;
-			formatConverter.OutputPixelFormat = PixelType_BGR8packed;
-			CPylonImage pylonImage;
-			formatConverter.Convert(pylonImage, ptrGrabresult);
-			CImagePersistence::Save(ImageFileFormat_Png, i+".png", pylonImage);
-			std::cout<<" Camera is set to SAVED"<< std::endl;
-			//run = false;
-			cameras[ i ].Close();
-		}
-		*/
 		
+	}
+	auto a = chrono::high_resolution_clock::now();
+	for ( size_t i = 0; i < cameras.GetSize(); ++i)
+	{
+		cameras[ i ].ExecuteSoftwareTrigger();
+		//auto b = chrono::high_resolution_clock::now();
+		//std::cout<<"execution time : "<< chrono::duration_cast<std::chrono::milliseconds>(a-b).count() <<std::endl;
+	}
+	
+	//Get images trigger by software trigger
+	for ( size_t i = 0; i < cameras.GetSize(); ++i)
+	{
+		CGrabResultPtr ptrGrabresult;
+		String_t name = i + "image.png";
+		cameras[ i ].RetrieveResult(5000, ptrGrabresult, TimeoutHandling_ThrowException);
+		if(ptrGrabresult->GrabSucceeded()){
+			std::cout<<" Camera is set to SUCCEEDED"<< std::endl;
+			CImageFormatConverter formatConverter;
+			formatConverter.OutputPixelFormat = PixelType_BGR8packed;
+			CPylonImage pylonImage;
+			formatConverter.Convert(pylonImage, ptrGrabresult);
+			std::stringstream ss;
+			ss << i << ".png";
+			std::string s = ss.str();
+			CImagePersistence::Save(ImageFileFormat_Png, name, pylonImage);
+			std::cout<<" Camera is set to SAVED"<< std::endl;
+			//run = false;
+			cameras[ i ].Close();
+		}
 	}
 	
 	/*
